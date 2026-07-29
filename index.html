@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🌳 Alkhidmat Plantation Drive · Dashboard</title>
+
+    <!-- Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+
+    <style>
+        /* ── Reset & Base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f7f2;
+            color: #1d2b1f;
+            padding: 20px 24px 40px;
+            min-height: 100vh;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e6ede4;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2b6e3b;
+            border-radius: 8px;
+        }
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a3a1e;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.3s ease;
+            pointer-events: none;
+            z-index: 9999;
+            max-width: 90%;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ═══════ CAROUSEL (TOP) ═══════ */
+        .carousel-wrapper {
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e4ece2;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        .carousel-container {
+            position: relative;
+            aspect-ratio: 21 / 9;
+            min-height: 220px;
+            background: #eef3ec;
+            overflow: hidden;
+        }
+        .carousel-slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .carousel-slide.active {
+            display: flex;
+        }
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .carousel-slide.no-image {
+            background: linear-gradient(135deg, #2b6e3b 0%, #1a3a1e 100%);
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 1px;
+        }
+        .carousel-slide.no-image i {
+            font-size: 3rem;
+            margin-right: 16px;
+            opacity: 0.6;
+        }
+
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 16px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .carousel-controls button {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #1a3a1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .carousel-controls button:hover {
+            background: #fff;
+            transform: scale(1.08);
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 5;
+        }
+        .carousel-dots .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            padding: 0;
+        }
+        .carousel-dots .dot.active {
+            background: #fff;
+            width: 28px;
+            border-radius: 8px;
+        }
+        .carousel-counter {
+            position: absolute;
+            bottom: 16px;
+            right: 24px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px 14px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+            z-index: 5;
+        }
+
+        /* ═══════ KPI CARDS (larger & bolder) ═══════ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 22px 24px 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e4ece2;
+            transition: 0.2s;
+            border-left: 6px solid #2b6e3b;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(43, 110, 59, 0.1);
+        }
+        .kpi-card .kpi-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5a7a5e;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .kpi-card .kpi-label i {
+            font-size: 1.1rem;
+            color: #2b6e3b;
+        }
+        .kpi-card .kpi-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #1a3a1e;
+            margin-top: 6px;
+            letter-spacing: -0.5px;
+        }
+        .kpi-card .kpi-sub {
+            font-size: 0.8rem;
+            color: #5a7a5e;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .kpi-card.accent-gold {
+            border-left-color: #d4a11e;
+        }
+        .kpi-card.accent-teal {
+            border-left-color: #1e7a7a;
+        }
+        .kpi-card.accent-rose {
+            border-left-color: #b34a5a;
+        }
+        .kpi-card.accent-purple {
+            border-left-color: #6b4a8a;
+        }
+        .kpi-card.accent-blue {
+            border-left-color: #1a73e8;
+        }
+
+        /* ═══════ HEADER TITLE ═══════ */
+        .dashboard-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px 16px 24px;
+            background: linear-gradient(135deg, #1a3a1e 0%, #2b6e3b 100%);
+            border-radius: 20px;
+            color: #fff;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 24px rgba(26, 58, 30, 0.2);
+        }
+        .dashboard-header .title-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .dashboard-header .title-left .icon {
+            font-size: 1.8rem;
+        }
+        .dashboard-header .title-left h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+        .dashboard-header .title-left h1 span {
+            font-weight: 400;
+            opacity: 0.8;
+            font-size: 0.85rem;
+            display: block;
+        }
+        .dashboard-header .update-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .dashboard-header .update-badge i {
+            font-size: 0.8rem;
+        }
+
+        /* ═══════ FILTER BAR ═══════ */
+        .filter-bar {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 24px;
+            border: 1px solid #e4ece2;
+        }
+        .filter-bar .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px 14px;
+            flex-wrap: wrap;
+        }
+        .filter-bar .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #2d4a33;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+        .filter-bar select {
+            background: #f4f7f2;
+            border: 1px solid #d6e2d2;
+            border-radius: 40px;
+            padding: 8px 18px 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1d2b1f;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+            font-family: inherit;
+            min-width: 110px;
+        }
+        .filter-bar select:hover {
+            border-color: #2b6e3b;
+            background: #edf4ea;
+        }
+        .filter-bar select:focus {
+            border-color: #2b6e3b;
+            box-shadow: 0 0 0 3px rgba(43, 110, 59, 0.12);
+        }
+        .filter-bar .refresh-btn {
+            margin-left: auto;
+            background: #2b6e3b;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+        .filter-bar .refresh-btn:hover {
+            background: #1f532c;
+            transform: scale(1.02);
+        }
+
+        /* ═══════ CHART ═══════ */
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 22px 22px;
+            border: 1px solid #e4ece2;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
+        }
+        .card .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1d2b1f;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card .card-title i {
+            color: #2b6e3b;
+            font-size: 1rem;
+        }
+        .card .card-title small {
+            font-weight: 400;
+            color: #5a7a5e;
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
+        .chart-container {
+            position: relative;
+            height: 240px;
+        }
+
+        /* ═══════ TWO-COLUMN LAYOUT ═══════ */
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* ═══════ ACTIVITY MIX ═══════ */
+        .activity-mix {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .activity-mix .am-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f4f7f2;
+            padding: 6px 14px 6px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .activity-mix .am-item .am-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .activity-mix .am-item .am-num {
+            font-weight: 700;
+            color: #1a3a1e;
+        }
+
+        /* ═══════ TABLE ═══════ */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 4px;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .table-wrap th {
+            text-align: left;
+            padding: 10px 8px 8px 0;
+            font-weight: 600;
+            color: #2d4a33;
+            border-bottom: 2px solid #dce8d8;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .table-wrap td {
+            padding: 9px 8px 9px 0;
+            border-bottom: 1px solid #eef3ec;
+            color: #1d2b1f;
+        }
+        .table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .table-wrap .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: #e4ece2;
+            color: #2d4a33;
+        }
+        .table-wrap .status-badge.completed {
+            background: #d4ecd0;
+            color: #1f532c;
+        }
+        .table-wrap .status-badge.upcoming {
+            background: #f5f0d6;
+            color: #8a7a2a;
+        }
+        .scroll-hint {
+            font-size: 0.65rem;
+            color: #8aa88e;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ═══════ UPCOMING ACTIVITIES CARD ═══════ */
+        .upcoming-list {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0;
+        }
+        .upcoming-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eef3ec;
+            font-size: 0.8rem;
+        }
+        .upcoming-list li .venue {
+            font-weight: 600;
+        }
+        .upcoming-list li .date {
+            color: #5a7a5e;
+        }
+        .upcoming-list li:last-child {
+            border-bottom: none;
+        }
+        .no-upcoming {
+            color: #8aa88e;
+            font-size: 0.8rem;
+            padding: 8px 0;
+        }
+
+        /* ═══════ MANAGE DATA BUTTON ═══════ */
+        .bottom-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        .admin-btn {
+            background: #ffc107;
+            color: #1a3a1e;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: inherit;
+            box-shadow: 0 4px 14px rgba(255, 193, 7, 0.3);
+        }
+        .admin-btn:hover {
+            background: #ffca2c;
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        }
+
+        /* ═══════ FOOTER ═══════ */
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #8aa88e;
+            border-top: 1px solid #dce8d8;
+            padding-top: 20px;
+            margin-top: 8px;
+        }
+        .footer span {
+            display: inline-block;
+            margin: 0 12px;
+        }
+        .footer i {
+            color: #2b6e3b;
+        }
+        .footer .warning {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.65rem;
+            color: #b34a5a;
+        }
+
+        /* ═══════ MODAL ═══════ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 28px;
+            max-width: 960px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 32px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e4ece2;
+            padding-bottom: 14px;
+        }
+        .modal-header h2 {
+            font-size: 1.3rem;
+            color: #1a3a1e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #8aa88e;
+            transition: 0.2s;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: #b34a5a;
+            transform: rotate(90deg);
+        }
+        .modal-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #e4ece2;
+            margin-bottom: 20px;
+            padding-bottom: 0;
+            flex-wrap: wrap;
+        }
+        .modal-tabs button {
+            background: none;
+            border: none;
+            padding: 8px 20px 12px;
+            font-weight: 600;
+            color: #5a7a5e;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.2s;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .modal-tabs button.active {
+            color: #1a3a1e;
+            border-bottom-color: #2b6e3b;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Admin forms */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+        .form-row .field {
+            flex: 1 0 140px;
+        }
+        .form-row .field label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2d4a33;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .form-row .field input,
+        .form-row .field select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d6e2d2;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: #f9fbf8;
+            transition: 0.2s;
+        }
+        .form-row .field input:focus,
+        .form-row .field select:focus {
+            outline: none;
+            border-color: #2b6e3b;
+            box-shadow: 0 0 0 3px rgba(43, 110, 59, 0.1);
+        }
+        .btn-primary {
+            background: #2b6e3b;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn-primary:hover {
+            background: #1f532c;
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-danger {
+            background: #b34a5a;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-danger:hover {
+            background: #8a3a48;
+        }
+        .btn-warning {
+            background: #d4a11e;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-warning:hover {
+            background: #b38a18;
+        }
+
+        .admin-table {
+            width: 100%;
+            font-size: 0.8rem;
+            border-collapse: collapse;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 8px 6px;
+            border-bottom: 2px solid #dce8d8;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+        .admin-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #eef3ec;
+            vertical-align: middle;
+        }
+        .admin-table .actions {
+            display: flex;
+            gap: 6px;
+        }
+        .slide-admin-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eef3ec;
+        }
+        .slide-admin-item .thumb {
+            width: 70px;
+            height: 46px;
+            border-radius: 8px;
+            background: #e4ece2;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .slide-admin-item .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .slide-admin-item .thumb .no-img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #8aa88e;
+            font-size: 0.6rem;
+        }
+        .slide-admin-item input[type="file"] {
+            font-size: 0.7rem;
+            max-width: 160px;
+        }
+        .slide-admin-item .slide-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .save-section {
+            margin-top: 20px;
+            border-top: 2px solid #e4ece2;
+            padding-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .text-muted {
+            color: #5a7a5e;
+        }
+        .mt-2 {
+            margin-top: 8px;
+        }
+        .storage-note {
+            background: #fef9e7;
+            border-left: 4px solid #d4a11e;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #5a4a1a;
+            margin-bottom: 16px;
+        }
+
+        /* Password overlay */
+        .password-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .password-overlay.active {
+            display: flex;
+        }
+        .password-box {
+            background: #fff;
+            border-radius: 28px;
+            padding: 40px 36px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .password-box h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #1a3a1e;
+        }
+        .password-box p {
+            font-size: 0.85rem;
+            color: #5a7a5e;
+            margin-bottom: 20px;
+        }
+        .password-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d6e2d2;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .password-box input:focus {
+            border-color: #2b6e3b;
+            box-shadow: 0 0 0 3px rgba(43, 110, 59, 0.1);
+        }
+        .password-box .btn-primary {
+            width: 100%;
+            justify-content: center;
+            font-size: 1rem;
+            padding: 12px;
+        }
+        .password-box .error-msg {
+            color: #b34a5a;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: none;
+        }
+        .password-box .error-msg.show {
+            display: block;
+        }
+
+        /* ═══════ RESPONSIVE ═══════ */
+        @media (max-width: 900px) {
+            .row-2col {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 16px 18px;
+            }
+            .dashboard-header .update-badge {
+                align-self: flex-start;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 16px 18px;
+            }
+            .filter-bar .refresh-btn {
+                margin-left: 0;
+                justify-content: center;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 14px;
+            }
+            .kpi-card .kpi-value {
+                font-size: 1.8rem;
+            }
+            .carousel-container {
+                aspect-ratio: 16 / 9;
+                min-height: 160px;
+            }
+            .carousel-controls button {
+                width: 34px;
+                height: 34px;
+                font-size: 0.9rem;
+            }
+            .modal-box {
+                padding: 20px 16px;
+            }
+            .form-row .field {
+                flex: 1 0 100%;
+            }
+            .slide-admin-item {
+                flex-wrap: wrap;
+            }
+            .slide-admin-item input[type="file"] {
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 500px) {
+            body {
+                padding: 12px 12px 28px;
+            }
+            .dashboard-header .title-left h1 {
+                font-size: 1rem;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .kpi-card .kpi-value {
+                font-size: 1.4rem;
+            }
+            .kpi-card {
+                padding: 16px;
+            }
+            .card {
+                padding: 16px 14px;
+            }
+            .filter-bar select {
+                min-width: 80px;
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+            .carousel-container {
+                aspect-ratio: 4 / 3;
+                min-height: 120px;
+            }
+            .carousel-controls button {
+                width: 28px;
+                height: 28px;
+                font-size: 0.7rem;
+            }
+            .admin-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .password-box {
+                padding: 30px 20px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+
+        <!-- ═══════ TOAST ═══════ -->
+        <div class="toast" id="toast"></div>
+
+        <!-- ═══════ 1. CAROUSEL (TOP) ═══════ -->
+        <div class="carousel-wrapper">
+            <div class="carousel-container" id="carouselContainer">
+                <!-- slides injected by JS -->
+                <div class="carousel-controls">
+                    <button onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+                    <button onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="carousel-dots" id="carouselDots"></div>
+                <div class="carousel-counter" id="slideCounter">1 / 10</div>
+            </div>
+        </div>
+
+        <!-- ═══════ 2. KPI CARDS ═══════ -->
+        <section class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card">
+                <div class="kpi-label"><i class="fas fa-tree"></i> Total Plants</div>
+                <div class="kpi-value" id="kpiPlants">0</div>
+                <div class="kpi-sub" id="kpiPlantsSub">across all activities</div>
+            </div>
+            <div class="kpi-card accent-gold">
+                <div class="kpi-label"><i class="fas fa-users"></i> Volunteers</div>
+                <div class="kpi-value" id="kpiVolunteers">0</div>
+                <div class="kpi-sub" id="kpiVolSub">engaged overall</div>
+            </div>
+            <div class="kpi-card accent-teal">
+                <div class="kpi-label"><i class="fas fa-clipboard-list"></i> Activities</div>
+                <div class="kpi-value" id="kpiActivities">0</div>
+                <div class="kpi-sub" id="kpiActSub">total drive events</div>
+            </div>
+            <div class="kpi-card accent-rose">
+                <div class="kpi-label"><i class="fas fa-check-circle"></i> Completion</div>
+                <div class="kpi-value" id="kpiCompletion">0%</div>
+                <div class="kpi-sub">of activities completed</div>
+            </div>
+            <div class="kpi-card accent-purple">
+                <div class="kpi-label"><i class="fas fa-map-pin"></i> Locations</div>
+                <div class="kpi-value" id="kpiLocations">0</div>
+                <div class="kpi-sub">unique drive sites</div>
+            </div>
+            <div class="kpi-card accent-blue">
+                <div class="kpi-label"><i class="fas fa-calendar-plus"></i> Upcoming</div>
+                <div class="kpi-value" id="kpiUpcoming">0</div>
+                <div class="kpi-sub">future activities</div>
+            </div>
+        </section>
+
+        <!-- ═══════ 3. HEADER with UPDATE DATE ═══════ -->
+        <div class="dashboard-header">
+            <div class="title-left">
+                <span class="icon">🌳</span>
+                <div>
+                    <h1>Alkhidmat Plantation Drive
+                        <span>Operational Performance Dashboard</span>
+                    </h1>
+                </div>
+            </div>
+            <div class="update-badge">
+                <i class="fas fa-sync-alt"></i> Updated: <span id="updateDate">—</span>
+            </div>
+        </div>
+
+        <!-- ═══════ 4. FILTER BAR ═══════ -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label><i class="far fa-calendar-alt"></i> View</label>
+                <select id="periodView">
+                    <option value="Month">Month</option>
+                    <option value="Quarter" selected>Quarter</option>
+                    <option value="Half">Half Year</option>
+                    <option value="Year">Year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Period</label>
+                <select id="periodSelect">
+                    <option value="All">All Periods</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="FY23-24">FY 23-24</option>
+                    <option value="FY24-25">FY 24-25</option>
+                    <option value="FY25-26">FY 25-26</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Quarter</label>
+                <select id="quarterSelect">
+                    <option value="All">All</option>
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Half</label>
+                <select id="halfSelect">
+                    <option value="All">All</option>
+                    <option value="H1">H1</option>
+                    <option value="H2">H2</option>
+                </select>
+            </div>
+            <button class="refresh-btn" onclick="applyFilters()"><i class="fas fa-sliders-h"></i> Apply</button>
+        </div>
+
+        <!-- ═══════ 5. CHART ═══════ -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-chart-bar"></i> Monthly / Yearly Performance
+                <small><span id="chartSubtitle">Plants · Volunteers</span></small>
+            </div>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ═══════ 6. UPCOMING ACTIVITIES CARD ═══════ -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-calendar-alt"></i> Upcoming Activities
+                <small>future‑dated events</small>
+            </div>
+            <ul class="upcoming-list" id="upcomingList">
+                <li class="no-upcoming">No upcoming activities found.</li>
+            </ul>
+        </div>
+
+        <!-- ═══════ 7. ACTIVITY BREAKDOWN + TABLE ═══════ -->
+        <div class="row-2col">
+            <!-- Activity Mix -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-pie-chart"></i> Activity Breakdown
+                    <small>type distribution</small>
+                </div>
+                <div class="activity-mix" id="activityMix"></div>
+                <div style="margin-top:18px; border-top:1px solid #e4ece2; padding-top:14px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                        <span class="text-muted">🌱 Plants per activity</span>
+                        <span id="plantsPerActivity" style="font-weight:700;">0</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px;">
+                        <span class="text-muted">👥 Plants per volunteer</span>
+                        <span id="plantsPerVolunteer" style="font-weight:700;">0</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                        <span class="text-muted">📌 Unique partners</span>
+                        <span id="uniquePartners" style="font-weight:700;">0</span>
+                    </div>
+                </div>
+                <div style="margin-top:14px; border-top:1px solid #e4ece2; padding-top:12px;">
+                    <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.3px; color:#5a7a5e; font-weight:600; margin-bottom:4px;">
+                        <i class="fas fa-trophy"></i> Top Performing Region
+                    </div>
+                    <div id="topRegion" style="font-weight:700; font-size:1rem;">—</div>
+                    <div id="topRegionPlants" style="font-size:0.8rem; color:#2b6e3b;"></div>
+                </div>
+            </div>
+
+            <!-- Recent Activities Table -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-table"></i> Recent Activities
+                    <small>Date · Venue · Plants · Volunteers</small>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Venue / Location</th>
+                                <th style="text-align:right;">Plants</th>
+                                <th style="text-align:right;">Volunteers</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="scroll-hint"><i class="fas fa-arrow-left"></i> scroll for more</div>
+            </div>
+        </div>
+
+        <!-- ═══════ 8. MANAGE DATA BUTTON (BOTTOM) ═══════ -->
+        <div class="bottom-actions">
+            <button class="admin-btn" onclick="requestAdminAccess()"><i class="fas fa-cog"></i> Manage Data</button>
+        </div>
+
+        <!-- ═══════ FOOTER ═══════ -->
+        <div class="footer">
+            <i class="fas fa-leaf"></i>
+            Alkhidmat Foundation Pakistan · Plantation Drive Data · 2023 – 2026
+            <span><i class="fas fa-database"></i> <span id="recordCount">0</span> records</span>
+            <span><i class="fas fa-save"></i> <span id="saveStatus">Loaded from storage</span></span>
+            <span class="warning"><i class="fas fa-info-circle"></i> This is a public view. Only the admin can edit data.</span>
+        </div>
+
+    </div>
+
+    <!-- ═══════ PASSWORD OVERLAY ═══════ -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-box">
+            <h3><i class="fas fa-lock" style="color:#2b6e3b;"></i> Admin Access</h3>
+            <p>Enter the admin password to manage data.</p>
+            <input type="password" id="passwordInput" placeholder="Enter password" />
+            <button class="btn-primary" onclick="verifyPassword()"><i class="fas fa-unlock-alt"></i> Unlock</button>
+            <div class="error-msg" id="passwordError">Incorrect password. Please try again.</div>
+        </div>
+    </div>
+
+    <!-- ═══════ ADMIN MODAL ═══════ -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-database" style="color:#2b6e3b;"></i> Data Management</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="active" data-tab="tab-activities">Activities</button>
+                <button data-tab="tab-slides">Pictures (max 20)</button>
+                <button data-tab="tab-save">Save &amp; Export</button>
+                <button data-tab="tab-security">🔐 Security</button>
+            </div>
+
+            <!-- TAB 1: Activities -->
+            <div id="tab-activities" class="tab-content active">
+                <h4 style="margin-bottom:12px;">Add / Edit Activity</h4>
+                <div class="form-row" id="activityForm">
+                    <div class="field">
+                        <label>Date</label>
+                        <input type="date" id="editDate" value="2024-01-01">
+                    </div>
+                    <div class="field">
+                        <label>Venue</label>
+                        <input type="text" id="editVenue" placeholder="Location name">
+                    </div>
+                    <div class="field">
+                        <label>Plants</label>
+                        <input type="number" id="editPlants" value="0">
+                    </div>
+                    <div class="field">
+                        <label>Volunteers</label>
+                        <input type="number" id="editVolunteers" value="0">
+                    </div>
+                    <div class="field">
+                        <label>Partner</label>
+                        <input type="text" id="editPartner" placeholder="Organization">
+                    </div>
+                    <div class="field">
+                        <label>Status</label>
+                        <select id="editStatus">
+                            <option value="Completed">Completed</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Planned">Planned</option>
+                        </select>
+                    </div>
+                    <div class="field" style="flex:0 0 auto;">
+                        <button class="btn-primary" onclick="saveActivity()"><i class="fas fa-plus"></i> Add</button>
+                        <button class="btn-danger" style="margin-left:6px; display:none;" id="cancelEditBtn" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                </div>
+                <input type="hidden" id="editIndex" value="-1">
+
+                <h4 style="margin:20px 0 12px;">Existing Activities</h4>
+                <div class="table-wrap">
+                    <table class="admin-table">
+                        <thead><tr><th>Date</th><th>Venue</th><th>Plants</th><th>Vol.</th><th>Status</th><th style="width:100px;">Actions</th></tr></thead>
+                        <tbody id="adminTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: Pictures (Slides) -->
+            <div id="tab-slides" class="tab-content">
+                <h4 style="margin-bottom:8px;">Manage Slideshow Pictures</h4>
+                <p style="font-size:0.8rem; color:#5a7a5e; margin-bottom:16px;">Upload up to 20 images. The carousel will display them at the top of the dashboard.</p>
+                <div id="slideAdminList"></div>
+                <button class="btn-primary" onclick="addSlide()" style="margin-top:14px;"><i class="fas fa-plus"></i> Add Slide</button>
+                <span style="font-size:0.75rem; color:#8aa88e; margin-left:12px;"><span id="slideCount">0</span> / 20 slides</span>
+            </div>
+
+            <!-- TAB 3: Save & Export -->
+            <div id="tab-save" class="tab-content">
+                <h4 style="margin-bottom:12px;">Persist &amp; Transfer Data</h4>
+                <p style="font-size:0.85rem; color:#2d4a33; margin-bottom:16px;">Save data to your browser's local storage. To share with someone, export the JSON file and they can import it.</p>
+                <div class="storage-note">
+                    <i class="fas fa-info-circle"></i> <strong>Important:</strong> Data is saved only in your current browser. To share this dashboard with someone else, use <strong>Export JSON</strong> and send the file. The recipient can then <strong>Import JSON</strong> to see your exact data and pictures.
+                </div>
+                <div class="save-section">
+                    <button class="btn-primary" onclick="saveToBrowser()"><i class="fas fa-save"></i> Save to Browser</button>
+                    <button class="btn-primary" onclick="exportJSON()"><i class="fas fa-file-export"></i> Export JSON</button>
+                    <button class="btn-primary" onclick="document.getElementById('importJSONInput').click()"><i class="fas fa-file-import"></i> Import JSON</button>
+                    <input type="file" id="importJSONInput" accept=".json" style="display:none;" onchange="importJSON(event)">
+                    <button class="btn-primary" onclick="exportCSV()"><i class="fas fa-file-excel"></i> Export CSV (Excel)</button>
+                    <button class="btn-primary" onclick="document.getElementById('importCSVInput').click()"><i class="fas fa-file-import"></i> Import CSV (Excel)</button>
+                    <input type="file" id="importCSVInput" accept=".csv" style="display:none;" onchange="importCSV(event)">
+                    <button class="btn-danger" onclick="resetToDefault()"><i class="fas fa-undo-alt"></i> Reset to Default</button>
+                </div>
+                <div style="margin-top:16px; background:#f4f7f2; padding:12px 16px; border-radius:12px; font-size:0.8rem; color:#5a7a5e;">
+                    <i class="fas fa-link"></i> <strong>Share via JSON:</strong> Export → send file → recipient imports → same data &amp; pictures appear.
+                </div>
+            </div>
+
+            <!-- TAB 4: Security (change password) -->
+            <div id="tab-security" class="tab-content">
+                <h4 style="margin-bottom:12px;">Change Admin Password</h4>
+                <p style="font-size:0.85rem; color:#5a7a5e; margin-bottom:16px;">Update the password required to access the data management panel.</p>
+                <div class="form-row">
+                    <div class="field" style="flex:1;">
+                        <label>New Password</label>
+                        <input type="text" id="newPasswordInput" placeholder="Enter new password" value="admin123" />
+                    </div>
+                    <div class="field" style="flex:0 0 auto;">
+                        <button class="btn-primary" onclick="changePassword()"><i class="fas fa-save"></i> Update Password</button>
+                    </div>
+                </div>
+                <div style="margin-top:8px; background:#f4f7f2; padding:10px 14px; border-radius:10px; font-size:0.75rem; color:#5a7a5e;">
+                    <i class="fas fa-info-circle"></i> The password is stored locally in your browser. Changing it here will affect only this browser.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ════════════════════════════════════════════════════════════════
+        //  DATA LAYER  (persisted in localStorage)
+        // ════════════════════════════════════════════════════════════════
+
+        const STORAGE_KEY = 'alkhidmat_dashboard_data_v4';
+        const PASSWORD_KEY = 'alkhidmat_admin_password';
+        const MAX_SLIDES = 20;
+
+        // Default slides (10 gradient slides)
+        const defaultSlides = Array.from({ length: 10 }, (_, i) => ({ image: '' }));
+
+        // Default records (compressed list from master data)
+        const defaultRecords = [
+            { date: '2023-03-25', venue: 'Head Office (Alkhidmat Complex)', plants: 20, volunteers: 50,
+                partner: 'Alkhidmat + PHA', status: 'Completed' },
+            { date: '2023-05-24', venue: 'Airport (PHA)', plants: 15000, volunteers: 2500, partner: 'Kips + UCP',
+                status: 'Completed' },
+            { date: '2023-06-10', venue: 'Mahmood Booti (PHA)', plants: 25000, volunteers: 1200, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2023-07-25', venue: 'Barki Hospital (BHU)', plants: 1000, volunteers: 50, partner: 'BHU',
+                status: 'Completed' },
+            { date: '2023-08-05', venue: 'Expo Center (PHA)', plants: 25000, volunteers: 1500, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2023-08-14', venue: 'Lahore (Public Distribution)', plants: 50000, volunteers: 500,
+                partner: 'Alkhidmat', status: 'Completed' },
+            { date: '2023-09-12', venue: 'Khayaban e Jinnah Road (PHA)', plants: 10000, volunteers: 1000, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2023-10-15', venue: 'Harbans Pura (PHA)', plants: 25000, volunteers: 1500, partner: 'Superior',
+                status: 'Completed' },
+            { date: '2023-10-20', venue: 'Overall Pakistan (Out of Lahore)', plants: 50000, volunteers: 2500,
+                partner: 'Alkhidmat + PHA', status: 'Completed' },
+            { date: '2023-10-26', venue: 'Gulberg (FCCU)', plants: 1000, volunteers: 50, partner: 'FC College',
+                status: 'Completed' },
+            { date: '2023-10-30', venue: 'Thokar Niaz Baig (PHA)', plants: 25000, volunteers: 1500, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2023-12-07', venue: 'Township (PHA)', plants: 25000, volunteers: 1000, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2024-01-20', venue: 'Gaza Bazar', plants: 5000, volunteers: 120, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-02-18', venue: 'Aghosh Lahore', plants: 2000, volunteers: 50, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-02-23', venue: 'Women Conference', plants: 2500, volunteers: 50, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-02-27', venue: 'Govt College Gulberg', plants: 3000, volunteers: 300,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-03-01', venue: 'Lahore Waste Management', plants: 500, volunteers: 10,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-03-07', venue: 'PHA Jallo', plants: 20000, volunteers: 900, partner: 'Chaon Foundation+UCP',
+                status: 'Completed' },
+            { date: '2024-03-21', venue: 'PHA Airport', plants: 5000, volunteers: 500, partner: 'Chaon Foundation+UCP',
+                status: 'Completed' },
+            { date: '2024-03-23', venue: 'Ashiyana House Township', plants: 150, volunteers: 5, partner: 'Alkhidmat',
+                status: 'Completed' },
+            { date: '2024-03-28', venue: 'PHA Canal', plants: 15000, volunteers: 1500, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-03-30', venue: 'Social Welfare Comp', plants: 1000, volunteers: 10,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-04-01', venue: 'Bait ul Maal Department', plants: 1000, volunteers: 5,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-04-04', venue: 'Social Welfare Society Ali Park', plants: 3000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-04-21', venue: 'Sunny Park PCHS', plants: 500, volunteers: 50, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-22', venue: 'World Earth Day', plants: 500, volunteers: 10, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-23', venue: 'PHA PIA Road', plants: 5000, volunteers: 1200, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-24', venue: 'Step Islamic School', plants: 500, volunteers: 5, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-25', venue: 'LCWU', plants: 5000, volunteers: 10, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-25', venue: 'The Citizen School Minhala', plants: 2000, volunteers: 20,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-04-26', venue: 'Shaikhupura', plants: 2000, volunteers: 300, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-04-27', venue: 'Queen Mary College', plants: 5000, volunteers: 200,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-04-30', venue: 'Johar Town Khairuddeen Park', plants: 3000, volunteers: 300, partner: 'UCP',
+                status: 'Completed' },
+            { date: '2024-05-02', venue: 'The Punjab School Ali Town', plants: 1500, volunteers: 5,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-03', venue: 'Ghazi Interchange', plants: 7500, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-05', venue: 'Abdullah Gul Interchange', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-06', venue: 'Mehmood Booti Interchange', plants: 7000, volunteers: 300,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-07', venue: 'Lahore Canal (LBC)', plants: 5000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-08', venue: 'Shahdara to Begum Kot', plants: 10000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-09', venue: 'Shadman Drain & Gulberg', plants: 15000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-09', venue: 'Central Punjab Region', plants: 10000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-10', venue: 'Jamal Chowk & K Block', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-10', venue: 'KP Region', plants: 10000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-11', venue: 'South Punjab', plants: 15000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-11', venue: 'North Punjab', plants: 10000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-12', venue: 'Babu Sabu Interchange', plants: 15000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-12', venue: 'Plantation Drive PHA Johar Town', plants: 10000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-12', venue: 'Karachi Region', plants: 10000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-13', venue: 'Gulshan-e-Ravi, Makkah Chowk', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-13', venue: 'Other Distribution Activities', plants: 47510, volunteers: 4751,
+                partner: 'Various', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Plants Distribution Mansoorah', plants: 3000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Superior University Lahore', plants: 1000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Mansoorah PP 168', plants: 50, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-14', venue: 'AKFP Office', plants: 250, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-14', venue: 'Central Punjab Region (Dist)', plants: 50000, volunteers: 5000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'South Punjab (Dist)', plants: 50000, volunteers: 5000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'North Punjab (Dist)', plants: 40000, volunteers: 4000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'KP Region (Dist)', plants: 30000, volunteers: 3000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Karachi Region (Dist)', plants: 40000, volunteers: 4000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Sargodha Division (Dist)', plants: 25000, volunteers: 2500,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Multan Division (Dist)', plants: 25000, volunteers: 2500,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Gujrat / Gujranwala (Dist)', plants: 15000, volunteers: 1500,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Sheikhupura (Dist)', plants: 10000, volunteers: 1000,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-14', venue: 'Other Cities (Dist)', plants: 15000, volunteers: 1500,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-15', venue: 'Zone-4 Parks & Green Belts', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-16', venue: 'Kasur Road', plants: 10000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-17', venue: 'China Scheme Zone-II', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-18', venue: 'Sargodha (Plantation)', plants: 10000, volunteers: 300,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-19', venue: 'Moulana Shoukat Ali Road', plants: 5500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-19', venue: 'Judicial Colony', plants: 1000, volunteers: 250, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-19', venue: 'MNs Uni Multan', plants: 13500, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-08-20', venue: 'Jallo More to Wagha', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-24', venue: 'Govt High School Kamahan', plants: 500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-26', venue: 'Govt High School Mohni Road', plants: 500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-26', venue: 'Govt Girls High School Gowind', plants: 500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-08-28', venue: 'Dar e Arqam School', plants: 1500, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-10-05', venue: 'Ali Road Hamdard Chowk (UCP)', plants: 5000, volunteers: 0,
+                partner: 'Chaon Foundation+UCP', status: 'Completed' },
+            { date: '2024-10-24', venue: 'Central School International', plants: 20, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-10-25', venue: 'Ideal Park', plants: 5000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-10-28', venue: 'Qartaba City', plants: 5000, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-10-30', venue: 'Plants Distribution (Hafiza Arhum)', plants: 20, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-02', venue: 'Plants Distribution Mustafa Town', plants: 600, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-03', venue: 'Center for Social Development', plants: 500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-04', venue: 'Ladies Park', plants: 200, volunteers: 0, partner: '', status: 'Completed' },
+            { date: '2024-11-06', venue: 'Hum Mashal e Rah Foundation', plants: 200, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-10', venue: 'Govt Islamia College Wahdat Rd', plants: 200, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-12', venue: 'Wapda Town', plants: 250, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-11-13', venue: 'C/O Asma Imran', plants: 500, volunteers: 0, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-11-15', venue: 'Gujrat c/o Mr. Abdul Shakoor', plants: 500, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-18', venue: 'The Educators Valencia', plants: 1000, volunteers: 50,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-11-20', venue: 'Islam Pura', plants: 500, volunteers: 25, partner: 'Chaon Foundation',
+                status: 'Completed' },
+            { date: '2024-12-02', venue: 'Wadduha Welfare Organization', plants: 50, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2024-12-10', venue: 'Plantation Drive with UCP', plants: 2000, volunteers: 0,
+                partner: 'Chaon Foundation', status: 'Completed' },
+            { date: '2025-03-14', venue: 'Qurtaba City, Chakri', plants: 5000, volunteers: 500,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-03-15', venue: 'Central Punjab Region (2025)', plants: 50000, volunteers: 5000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-03-25', venue: 'Qurtaba City, Chakri (2)', plants: 3000, volunteers: 300,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-03-28', venue: 'New Ravi Bridge (PHA)', plants: 2500, volunteers: 230,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-07-16', venue: 'South Punjab (2025)', plants: 50000, volunteers: 5000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-07-30', venue: 'North Punjab (2025)', plants: 40000, volunteers: 4000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-03', venue: 'KP Region (2025)', plants: 30000, volunteers: 3000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-04', venue: 'Karachi Region (2025)', plants: 40000, volunteers: 4000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-05', venue: 'Sargodha Division (2025)', plants: 25000, volunteers: 2500,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-06', venue: 'Multan Division (2025)', plants: 25000, volunteers: 2500,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-07', venue: 'Gujrat / Gujranwala (2025)', plants: 20000, volunteers: 1500,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-08', venue: 'Sheikhupura (2025)', plants: 10000, volunteers: 1000,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-09', venue: 'Other Cities (2025)', plants: 25000, volunteers: 1500,
+                partner: 'Superior University', status: 'Completed' },
+            { date: '2025-08-10', venue: 'Sargodha Medical College', plants: 2500, volunteers: 250,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-08-14', venue: 'Independence Day – Expo Centre Lahore', plants: 20000, volunteers: 2000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-08-16', venue: 'Qurtaba City, Chakri (3)', plants: 3000, volunteers: 275,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-09-22', venue: 'Al-Khidmat Nursery, Dinanath', plants: 10000, volunteers: 1000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-10-16', venue: 'Al-Khidmat Nursery, Manga Mandi', plants: 10000, volunteers: 1000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-10-18', venue: 'Al-Khidmat Nursery, Manga Mandi (2)', plants: 10000, volunteers: 1000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-10-20', venue: 'Al-Khidmat Nursery, Manga Mandi (3)', plants: 10000, volunteers: 950,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-10-25', venue: 'Al-Khidmat Nursery, Manga Mandi (4)', plants: 10000, volunteers: 1000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-01', venue: 'Al-Khidmat Nursery, Manga Mandi (5)', plants: 15000, volunteers: 1314,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-02', venue: 'Al-Khidmat Nursery, Manga Mandi (6)', plants: 15000, volunteers: 1480,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-02', venue: 'Al-Khidmat Nursery, Manga Mandi (7)', plants: 7000, volunteers: 660,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-04', venue: 'Al-Khidmat Nursery, Manga Mandi (8)', plants: 20000, volunteers: 2000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-05', venue: 'Al-Khidmat Nursery, Manga Mandi (9)', plants: 10000, volunteers: 1000,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-05', venue: 'Al-Khidmat Nursery, Manga Mandi (10)', plants: 7500, volunteers: 719,
+                partner: 'Chaoon Foundation', status: 'Completed' },
+            { date: '2025-11-08', venue: 'Multan Road Interchange (1st)', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'Multan Road Interchange (2nd)', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'Bahria Interchange', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'PIA Road Park Johar Town', plants: 1000, volunteers: 50,
+                partner: 'Superior Students', status: 'Completed' },
+            { date: '2025-11-08', venue: 'Shaukat Khanam Hospital Park', plants: 1000, volunteers: 50,
+                partner: 'BNU Students', status: 'Completed' },
+            { date: '2025-11-08', venue: 'Madar e Millat Road Sides', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'Ladies Park Township', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'Khayaban e Jinnah Road (2)', plants: 1000, volunteers: 50,
+                partner: 'Flagship Participants', status: 'Completed' },
+            { date: '2025-11-08', venue: 'New Ravi Bridge (repeat)', plants: 1000, volunteers: 50, partner: 'PHA',
+                status: 'Completed' },
+            { date: '2025-11-08', venue: 'Badian Baoye asil Road', plants: 1000, volunteers: 50,
+                partner: 'Forest Department', status: 'Completed' },
+            { date: '2025-11-08', venue: 'Aghosh Sheikhupura', plants: 100, volunteers: 10, partner: 'Chaoon Foundation',
+                status: 'Completed' },
+            { date: '2026-03-31', venue: 'Alkhidmat Multan', plants: 1500, volunteers: 500, partner: 'Chaoon Foundation',
+                status: 'Completed' },
+            { date: '2026-04-02', venue: 'Bagh e Jinnah', plants: 500, volunteers: 150, partner: 'Dera Nursery',
+                status: 'Completed' },
+            { date: '2026-04-07', venue: 'Okara (Dist)', plants: 1000, volunteers: 100, partner: 'Chaoon Foundation',
+                status: 'Completed' },
+            { date: '2026-04-07', venue: 'Sialkot (Dist)', plants: 1000, volunteers: 100, partner: 'AKF',
+                status: 'Completed' },
+            { date: '2026-04-08', venue: 'Hafizabad (Dist)', plants: 1000, volunteers: 100, partner: 'AKF',
+                status: 'Completed' },
+            { date: '2026-04-08', venue: 'Gujranwala (Dist)', plants: 1000, volunteers: 100, partner: 'AKF',
+                status: 'Completed' },
+            { date: '2026-04-09', venue: 'Sahiwal (Dist)', plants: 1000, volunteers: 100, partner: 'AKF',
+                status: 'Completed' },
+            { date: '2026-04-09', venue: 'Sheikhupura (Dist 2026)', plants: 1000, volunteers: 100, partner: 'AKF',
+                status: 'Completed' },
+            { date: '2026-04-16', venue: 'SOS Village', plants: 200, volunteers: 50, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-16', venue: 'SOS Children School', plants: 200, volunteers: 30, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-22', venue: 'Punjab University Gender Studies', plants: 200, volunteers: 150,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-04-22', venue: 'The City School Paragon', plants: 100, volunteers: 45,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-04-23', venue: 'Chung Collage', plants: 100, volunteers: 80, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-26', venue: 'Qurtaba City (2026)', plants: 2500, volunteers: 125,
+                partner: 'Chao Foundation', status: 'Completed' },
+            { date: '2026-04-28', venue: 'PU Girls Hostel 1', plants: 30, volunteers: 10, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'PU Girls Hostel 6', plants: 30, volunteers: 10, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'PU Girls Hostel 7', plants: 30, volunteers: 16, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'PU Girls Hostel 9', plants: 30, volunteers: 20, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'PU Girls Hostel 12', plants: 30, volunteers: 15, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'Govt Post Graduate Wahdat Road', plants: 100, volunteers: 80,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-04-28', venue: 'Leads University', plants: 150, volunteers: 60, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-04-28', venue: 'Superior University (2026)', plants: 500, volunteers: 100,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-04-28', venue: 'Punjab University Old Campus', plants: 50, volunteers: 20,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-05-15', venue: 'VLG Students UMT', plants: 50, volunteers: 30, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-05-20', venue: 'Badami Bagh Old City Cultural Event', plants: 30, volunteers: 40,
+                partner: 'Manga Nursery', status: 'Completed' },
+            { date: '2026-05-20', venue: 'Civil Line Collage', plants: 100, volunteers: 50, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-06-22', venue: 'UBAS', plants: 80, volunteers: 50, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-06-26', venue: 'UET KSK', plants: 60, volunteers: 40, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-07-18', venue: 'Jilani Park', plants: 200, volunteers: 300, partner: 'Dera Nursery',
+                status: 'Completed' },
+            { date: '2026-10-04', venue: 'Alkhidmat Wasti Punjab', plants: 35, volunteers: 20, partner: 'Manga Nursery',
+                status: 'Completed' },
+            { date: '2026-11-05', venue: 'UMT (2026)', plants: 100, volunteers: 50, partner: 'Manga Nursery',
+                status: 'Completed' },
+        ];
+
+        // ── Current Data ──
+        let dashboardData = {
+            records: [],
+            slides: []
+        };
+
+        // ── Admin password ──
+        let adminPassword = 'admin123';
+
+        // ── Load from storage or defaults ──
+        function loadData() {
+            // Load password
+            const savedPwd = localStorage.getItem(PASSWORD_KEY);
+            if (savedPwd) adminPassword = savedPwd;
+            document.getElementById('newPasswordInput').value = adminPassword;
+
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    dashboardData.records = parsed.records || [];
+                    dashboardData.slides = parsed.slides || [];
+                    while (dashboardData.slides.length < 10) {
+                        dashboardData.slides.push({ image: '' });
+                    }
+                    document.getElementById('saveStatus').textContent = 'Data loaded from storage ✅';
+                    return true;
+                } catch (e) {
+                    console.warn('Failed to parse saved data, using defaults.');
+                }
+            }
+            // Fallback to defaults
+            dashboardData.records = JSON.parse(JSON.stringify(defaultRecords));
+            dashboardData.slides = JSON.parse(JSON.stringify(defaultSlides));
+            document.getElementById('saveStatus').textContent = 'Default data loaded';
+            return false;
+        }
+
+        // ── Save to localStorage ──
+        function saveToBrowser() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dashboardData));
+                document.getElementById('saveStatus').textContent = 'Data saved to browser ✅';
+                updateUpdateDate();
+                showToast('Data saved locally!');
+                return true;
+            } catch (e) {
+                console.error(e);
+                showToast('Error saving data. Storage might be full. Try smaller images.');
+                return false;
+            }
+        }
+
+        // ── Auto-save ──
+        function autoSave() {
+            saveToBrowser();
+            applyFilters();
+            renderCarousel();
+            renderAdminTable();
+            renderSlideAdmin();
+            updateSlideCount();
+        }
+
+        // ── Update date badge ──
+        function updateUpdateDate() {
+            const now = new Date();
+            const str = now.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit',
+                minute: '2-digit' });
+            document.getElementById('updateDate').textContent = str;
+        }
+
+        // ── Helpers ──
+        function getQuarter(dateStr) { const m = new Date(dateStr).getMonth() + 1; return 'Q' + Math.ceil(m / 3); }
+
+        function getHalf(dateStr) { const m = new Date(dateStr).getMonth() + 1; return m <= 6 ? 'H1' : 'H2'; }
+
+        function getYear(dateStr) { return new Date(dateStr).getFullYear(); }
+
+        function getMonthName(dateStr) { return new Date(dateStr).toLocaleString('default', { month: 'short' }); }
+
+        function getFinancialYear(dateStr) {
+            const y = getYear(dateStr);
+            const m = new Date(dateStr).getMonth() + 1;
+            if (m >= 7) return 'FY' + (y) + '-' + (y + 1);
+            return 'FY' + (y - 1) + '-' + y;
+        }
+
+        function getFinancialQuarter(dateStr) {
+            const m = new Date(dateStr).getMonth() + 1;
+            const q = Math.ceil(((m - 7 + 12) % 12 + 1) / 3);
+            return 'Q' + q;
+        }
+
+        function getFinancialHalf(dateStr) {
+            const m = new Date(dateStr).getMonth() + 1;
+            const offset = ((m - 7 + 12) % 12 + 1);
+            return offset <= 6 ? 'H1' : 'H2';
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(el._timeout);
+            el._timeout = setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        // ── Compress image (stronger compression) ──
+        function compressImage(dataUrl, maxSize = 600) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width,
+                        h = img.height;
+                    if (w > maxSize || h > maxSize) {
+                        const ratio = Math.min(maxSize / w, maxSize / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.5));
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  FILTER & RENDER
+        // ════════════════════════════════════════════════════════════════
+
+        let currentPeriodView = 'Quarter';
+        let filteredRecords = [];
+        let chartInstance = null;
+
+        function applyFilters() {
+            const view = document.getElementById('periodView').value;
+            const period = document.getElementById('periodSelect').value;
+            const quarter = document.getElementById('quarterSelect').value;
+            const half = document.getElementById('halfSelect').value;
+            currentPeriodView = view;
+
+            filteredRecords = dashboardData.records.filter(r => {
+                if (period !== 'All') {
+                    if (period.startsWith('FY')) {
+                        if (getFinancialYear(r.date) !== period) return false;
+                    } else {
+                        if (getYear(r.date) !== parseInt(period)) return false;
+                    }
+                }
+                if (quarter !== 'All') {
+                    if (view === 'Quarter' || view === 'Month') {
+                        if (getQuarter(r.date) !== quarter) return false;
+                    } else if (view === 'Year') {
+                        if (getQuarter(r.date) !== quarter) return false;
+                    } else {
+                        if (getFinancialQuarter(r.date) !== quarter) return false;
+                    }
+                }
+                if (half !== 'All') {
+                    if (view === 'Half' || view === 'Quarter' || view === 'Month') {
+                        if (getHalf(r.date) !== half) return false;
+                    } else {
+                        if (getFinancialHalf(r.date) !== half) return false;
+                    }
+                }
+                return true;
+            });
+
+            updateDashboard();
+            updateChart();
+            updateTable();
+            updateActivityMix();
+            updateKPIs();
+            updateFooter();
+            updateUpcoming();
+        }
+
+        function updateKPIs() {
+            const totalPlants = filteredRecords.reduce((s, r) => s + r.plants, 0);
+            const totalVol = filteredRecords.reduce((s, r) => s + r.volunteers, 0);
+            const totalAct = filteredRecords.length;
+            const completed = filteredRecords.filter(r => r.status === 'Completed').length;
+            const completionRate = totalAct ? (completed / totalAct * 100) : 0;
+            const locs = new Set(filteredRecords.map(r => r.venue));
+            const partners = new Set(filteredRecords.map(r => r.partner).filter(p => p));
+
+            const upcoming = dashboardData.records.filter(r => {
+                if (r.status === 'Upcoming') return true;
+                if (r.date && new Date(r.date) > new Date()) return true;
+                return false;
+            });
+
+            document.getElementById('kpiPlants').textContent = totalPlants.toLocaleString();
+            document.getElementById('kpiVolunteers').textContent = totalVol.toLocaleString();
+            document.getElementById('kpiActivities').textContent = totalAct;
+            document.getElementById('kpiCompletion').textContent = completionRate.toFixed(1) + '%';
+            document.getElementById('kpiLocations').textContent = locs.size;
+            document.getElementById('kpiUpcoming').textContent = upcoming.length;
+
+            document.getElementById('kpiPlantsSub').textContent = totalAct ? `avg ${Math.round(totalPlants/totalAct).toLocaleString()} per activity` :
+                'no activities';
+            document.getElementById('kpiVolSub').textContent = totalAct ? `${(totalVol/totalAct).toFixed(1)} avg per activity` : '—';
+            document.getElementById('kpiActSub').textContent = `${completed} completed · ${totalAct - completed} pending`;
+
+            const ppa = totalAct ? (totalPlants / totalAct) : 0;
+            document.getElementById('plantsPerActivity').textContent = ppa.toFixed(0).toLocaleString();
+            const ppv = totalVol ? (totalPlants / totalVol) : 0;
+            document.getElementById('plantsPerVolunteer').textContent = ppv.toFixed(1);
+            document.getElementById('uniquePartners').textContent = partners.size;
+
+            const regionMap = {};
+            filteredRecords.forEach(r => {
+                const key = r.region || 'Unknown';
+                if (!r.region) {
+                    if (r.venue.includes('Region') || r.venue.includes('Punjab') || r.venue.includes('Karachi') || r.venue
+                        .includes('KP')) {
+                        regionMap['Regions'] = (regionMap['Regions'] || 0) + r.plants;
+                    } else {
+                        regionMap['Head Office'] = (regionMap['Head Office'] || 0) + r.plants;
+                    }
+                } else {
+                    regionMap[key] = (regionMap[key] || 0) + r.plants;
+                }
+            });
+            let topRegion = '';
+            let topVal = 0;
+            for (const [k, v] of Object.entries(regionMap)) {
+                if (v > topVal) { topVal = v;
+                    topRegion = k; }
+            }
+            document.getElementById('topRegion').textContent = topRegion || '—';
+            document.getElementById('topRegionPlants').textContent = topVal ? `${topVal.toLocaleString()} plants` : '';
+        }
+
+        function updateDashboard() { updateKPIs(); }
+
+        function updateUpcoming() {
+            const list = document.getElementById('upcomingList');
+            const upcoming = dashboardData.records
+                .filter(r => {
+                    if (r.status === 'Upcoming') return true;
+                    if (r.date && new Date(r.date) > new Date()) return true;
+                    return false;
+                })
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (upcoming.length === 0) {
+                list.innerHTML = '<li class="no-upcoming">No upcoming activities found.</li>';
+                return;
+            }
+
+            list.innerHTML = upcoming.slice(0, 10).map(r => `
+                        <li>
+                            <span class="venue">${r.venue}</span>
+                            <span class="date">${r.date} · ${r.plants} plants</span>
+                        </li>
+                    `).join('');
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('activityTableBody');
+            const sorted = [...filteredRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const show = sorted.slice(0, 15);
+            tbody.innerHTML = show.map(r => {
+                const statusClass = r.status === 'Completed' ? 'completed' : 'upcoming';
+                return `<tr>
+                            <td>${r.date}</td>
+                            <td>${r.venue}</td>
+                            <td style="text-align:right; font-weight:600;">${r.plants.toLocaleString()}</td>
+                            <td style="text-align:right;">${r.volunteers.toLocaleString()}</td>
+                            <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+                        </tr>`;
+            }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#8aa88e;">No records match.</td></tr>';
+        }
+
+        function updateActivityMix() {
+            const container = document.getElementById('activityMix');
+            const map = {};
+            filteredRecords.forEach(r => {
+                const key = r.activity || 'Plantation';
+                if (!r.activity) {
+                    if (r.venue.includes('Distribution') || r.venue.includes('Dist')) map['Distribution'] = (map[
+                        'Distribution'] || 0) + r.plants;
+                    else map['Plantation'] = (map['Plantation'] || 0) + r.plants;
+                } else {
+                    map[key] = (map[key] || 0) + r.plants;
+                }
+            });
+            const total = Object.values(map).reduce((s, v) => s + v, 0);
+            const colors = ['#2b6e3b', '#d4a11e', '#1e7a7a', '#b34a5a', '#6b4a8a', '#3a7a5a'];
+            let html = '';
+            let idx = 0;
+            for (const [key, val] of Object.entries(map).sort((a, b) => b[1] - a[1])) {
+                const pct = total ? (val / total * 100) : 0;
+                const color = colors[idx % colors.length];
+                html += `<div class="am-item">
+                            <span class="am-dot" style="background:${color};"></span>
+                            ${key} <span class="am-num">${val.toLocaleString()}</span>
+                            <span style="font-size:0.65rem;color:#8aa88e;">(${pct.toFixed(0)}%)</span>
+                        </div>`;
+                idx++;
+            }
+            container.innerHTML = html || '<div style="color:#8aa88e;font-size:0.8rem;">No activity data</div>';
+        }
+
+        function updateFooter() {
+            document.getElementById('recordCount').textContent = filteredRecords.length;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  CHART
+        // ════════════════════════════════════════════════════════════════
+
+        function updateChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            const monthMap = {};
+            filteredRecords.forEach(r => {
+                const key = r.date.substring(0, 7);
+                if (!monthMap[key]) monthMap[key] = { plants: 0, volunteers: 0, count: 0 };
+                monthMap[key].plants += r.plants;
+                monthMap[key].volunteers += r.volunteers;
+                monthMap[key].count += 1;
+            });
+            const sortedMonths = Object.keys(monthMap).sort();
+            const labels = sortedMonths.map(m => {
+                const [y, mo] = m.split('-');
+                return getMonthName(`${y}-${mo}-01`) + ' ' + y.slice(2);
+            });
+            const plantsData = sortedMonths.map(m => monthMap[m].plants);
+            const volData = sortedMonths.map(m => monthMap[m].volunteers);
+
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['No Data'],
+                    datasets: [{
+                        label: 'Plants',
+                        data: labels.length ? plantsData : [0],
+                        backgroundColor: 'rgba(43, 110, 59, 0.7)',
+                        borderColor: '#2b6e3b',
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                        order: 1,
+                    }, {
+                        label: 'Volunteers',
+                        data: labels.length ? volData : [0],
+                        type: 'line',
+                        borderColor: '#d4a11e',
+                        backgroundColor: 'rgba(212, 161, 30, 0.08)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#d4a11e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.2,
+                        fill: true,
+                        order: 0,
+                        yAxisID: 'y1',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, padding: 12, font: { size: 10,
+                                    weight: '600' }, color: '#1d2b1f' } },
+                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' +
+                                    context.parsed.y.toLocaleString(); } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 30,
+                                autoSkip: true, maxTicksLimit: 12 } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 9 },
+                                callback: v => v >= 1000 ? (v / 1000) + 'k' : v } },
+                        y1: { position: 'right', beginAtZero: true, grid: { display: false },
+                            ticks: { font: { size: 9 }, callback: v => v >= 1000 ? (v / 1000) + 'k' : v } }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+            document.getElementById('chartSubtitle').textContent =
+                `${filteredRecords.length} activities · ${Object.keys(monthMap).length} months`;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  CAROUSEL (TOP)
+        // ════════════════════════════════════════════════════════════════
+
+        let slideIndex = 0;
+        let autoSlideInterval = null;
+
+        function renderCarousel() {
+            const container = document.getElementById('carouselContainer');
+            const existingSlides = container.querySelectorAll('.carousel-slide');
+            existingSlides.forEach(el => el.remove());
+
+            const slidesData = dashboardData.slides;
+            if (slidesData.length === 0) {
+                const fallback = document.createElement('div');
+                fallback.className = 'carousel-slide active no-image';
+                fallback.innerHTML = '<i class="fas fa-tree"></i> Plantation Drive';
+                container.prepend(fallback);
+                return;
+            }
+
+            if (slideIndex >= slidesData.length) slideIndex = 0;
+
+            slidesData.forEach((s, i) => {
+                const slide = document.createElement('div');
+                slide.className = `carousel-slide ${i === slideIndex ? 'active' : ''}`;
+                if (s.image && s.image.startsWith('data:image')) {
+                    const img = document.createElement('img');
+                    img.src = s.image;
+                    img.alt = `Slide ${i+1}`;
+                    slide.appendChild(img);
+                } else {
+                    slide.className += ' no-image';
+                    slide.innerHTML =
+                        `<i class="fas fa-tree" style="font-size:2.5rem;opacity:0.5;"></i> <span style="margin-left:12px;">Plantation Drive</span>`;
+                }
+                container.prepend(slide);
+            });
+
+            const dotsContainer = document.getElementById('carouselDots');
+            dotsContainer.innerHTML = slidesData.map((_, i) =>
+                `<button class="dot ${i === slideIndex ? 'active' : ''}" onclick="goToSlide(${i})"></button>`
+            ).join('');
+
+            document.getElementById('slideCounter').textContent =
+                slidesData.length > 0 ? `${slideIndex + 1} / ${slidesData.length}` : '0 / 0';
+        }
+
+        function nextSlide() {
+            if (dashboardData.slides.length === 0) return;
+            slideIndex = (slideIndex + 1) % dashboardData.slides.length;
+            renderCarousel();
+        }
+
+        function prevSlide() {
+            if (dashboardData.slides.length === 0) return;
+            slideIndex = (slideIndex - 1 + dashboardData.slides.length) % dashboardData.slides.length;
+            renderCarousel();
+        }
+
+        function goToSlide(i) {
+            slideIndex = i;
+            renderCarousel();
+        }
+
+        function startAutoSlide() {
+            if (autoSlideInterval) clearInterval(autoSlideInterval);
+            if (dashboardData.slides.length > 1) {
+                autoSlideInterval = setInterval(nextSlide, 5000);
+            }
+        }
+
+        function stopAutoSlide() {
+            if (autoSlideInterval) { clearInterval(autoSlideInterval);
+                autoSlideInterval = null; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = document.getElementById('carouselContainer');
+            if (carousel) {
+                carousel.addEventListener('mouseenter', stopAutoSlide);
+                carousel.addEventListener('mouseleave', startAutoSlide);
+            }
+        });
+
+        // ════════════════════════════════════════════════════════════════
+        //  CSV EXPORT / IMPORT
+        // ════════════════════════════════════════════════════════════════
+
+        function exportCSV() {
+            const headers = ['Date', 'Venue', 'Plants', 'Volunteers', 'Partner', 'Status'];
+            const rows = dashboardData.records.map(r => [
+                r.date, r.venue, r.plants, r.volunteers, r.partner || '', r.status || 'Completed'
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `alkhidmat_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV exported!');
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length < 2) {
+                        showToast('CSV must have at least one data row.');
+                        return;
+                    }
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    // Expected: Date, Venue, Plants, Volunteers, Partner, Status
+                    const data = lines.slice(1).map(line => {
+                        const cols = line.split(',').map(c => c.trim());
+                        return {
+                            date: cols[0] || '',
+                            venue: cols[1] || '',
+                            plants: parseInt(cols[2]) || 0,
+                            volunteers: parseInt(cols[3]) || 0,
+                            partner: cols[4] || '',
+                            status: cols[5] || 'Completed'
+                        };
+                    }).filter(r => r.date && r.venue);
+                    if (data.length === 0) {
+                        showToast('No valid rows found.');
+                        return;
+                    }
+                    dashboardData.records = data;
+                    autoSave();
+                    renderAdminTable();
+                    applyFilters();
+                    showToast(`Imported ${data.length} records from CSV.`);
+                } catch (err) {
+                    showToast('Error reading CSV: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ── JSON Export/Import (keep existing) ──
+        function exportJSON() {
+            const dataStr = JSON.stringify(dashboardData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `alkhidmat_data_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('JSON exported!');
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.records && data.slides) {
+                        dashboardData.records = data.records;
+                        dashboardData.slides = data.slides;
+                        autoSave();
+                        renderAdminTable();
+                        renderSlideAdmin();
+                        renderCarousel();
+                        applyFilters();
+                        showToast('JSON imported successfully!');
+                    } else {
+                        showToast('Invalid JSON format.');
+                    }
+                } catch (err) {
+                    showToast('Error reading JSON.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ── Reset to default ──
+        function resetToDefault() {
+            if (!confirm('Reset all data to default? This will overwrite your current data.')) return;
+            dashboardData.records = JSON.parse(JSON.stringify(defaultRecords));
+            dashboardData.slides = JSON.parse(JSON.stringify(defaultSlides));
+            autoSave();
+            renderAdminTable();
+            renderSlideAdmin();
+            renderCarousel();
+            applyFilters();
+            showToast('Reset to default data.');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  ADMIN PASSWORD
+        // ════════════════════════════════════════════════════════════════
+
+        function requestAdminAccess() {
+            document.getElementById('passwordOverlay').classList.add('active');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').classList.remove('show');
+            document.getElementById('passwordInput').focus();
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput').value;
+            if (input === adminPassword) {
+                document.getElementById('passwordOverlay').classList.remove('active');
+                openModal();
+            } else {
+                document.getElementById('passwordError').classList.add('show');
+            }
+        }
+
+        document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') verifyPassword();
+        });
+
+        function changePassword() {
+            const newPwd = document.getElementById('newPasswordInput').value.trim();
+            if (newPwd.length < 4) {
+                showToast('Password must be at least 4 characters.');
+                return;
+            }
+            adminPassword = newPwd;
+            localStorage.setItem(PASSWORD_KEY, adminPassword);
+            showToast('Password updated successfully!');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  ADMIN MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        function openModal() {
+            document.getElementById('adminModal').classList.add('active');
+            renderAdminTable();
+            renderSlideAdmin();
+            updateSlideCount();
+            document.getElementById('editIndex').value = -1;
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('editDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('editVenue').value = '';
+            document.getElementById('editPlants').value = 0;
+            document.getElementById('editVolunteers').value = 0;
+            document.getElementById('editPartner').value = '';
+            document.getElementById('editStatus').value = 'Completed';
+            document.querySelector('#activityForm .btn-primary').innerHTML = '<i class="fas fa-plus"></i> Add';
+            document.getElementById('newPasswordInput').value = adminPassword;
+        }
+
+        function closeModal() {
+            document.getElementById('adminModal').classList.remove('active');
+        }
+
+        // Tab switching
+        document.querySelectorAll('.modal-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.modal-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ── Admin: Activities ──
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            const sorted = [...dashboardData.records].sort((a, b) => new Date(b.date) - new Date(a.date));
+            tbody.innerHTML = sorted.map((r, idx) => {
+                const realIdx = dashboardData.records.indexOf(r);
+                return `<tr>
+                            <td>${r.date}</td>
+                            <td>${r.venue}</td>
+                            <td>${r.plants}</td>
+                            <td>${r.volunteers}</td>
+                            <td><span class="status-badge ${r.status === 'Completed' ? 'completed' : ''}">${r.status}</span></td>
+                            <td class="actions">
+                                <button class="btn-warning" onclick="editActivity(${realIdx})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-danger" onclick="deleteActivity(${realIdx})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+            }).join('') || '<tr><td colspan="6" style="text-align:center;padding:16px;color:#8aa88e;">No activities added yet.</td></tr>';
+        }
+
+        function editActivity(idx) {
+            const r = dashboardData.records[idx];
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('editDate').value = r.date;
+            document.getElementById('editVenue').value = r.venue;
+            document.getElementById('editPlants').value = r.plants;
+            document.getElementById('editVolunteers').value = r.volunteers;
+            document.getElementById('editPartner').value = r.partner || '';
+            document.getElementById('editStatus').value = r.status || 'Completed';
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            document.querySelector('#activityForm .btn-primary').innerHTML = '<i class="fas fa-save"></i> Update';
+        }
+
+        function cancelEdit() {
+            document.getElementById('editIndex').value = -1;
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.querySelector('#activityForm .btn-primary').innerHTML = '<i class="fas fa-plus"></i> Add';
+            document.getElementById('editDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('editVenue').value = '';
+            document.getElementById('editPlants').value = 0;
+            document.getElementById('editVolunteers').value = 0;
+            document.getElementById('editPartner').value = '';
+            document.getElementById('editStatus').value = 'Completed';
+        }
+
+        function saveActivity() {
+            const idx = parseInt(document.getElementById('editIndex').value);
+            const date = document.getElementById('editDate').value;
+            const venue = document.getElementById('editVenue').value.trim();
+            const plants = parseInt(document.getElementById('editPlants').value) || 0;
+            const volunteers = parseInt(document.getElementById('editVolunteers').value) || 0;
+            const partner = document.getElementById('editPartner').value.trim();
+            const status = document.getElementById('editStatus').value;
+
+            if (!date || !venue) {
+                showToast('Please fill in Date and Venue.');
+                return;
+            }
+
+            const record = { date, venue, plants, volunteers, partner, status };
+
+            if (idx >= 0 && idx < dashboardData.records.length) {
+                dashboardData.records[idx] = record;
+                showToast('Activity updated!');
+            } else {
+                dashboardData.records.push(record);
+                showToast('Activity added!');
+            }
+
+            cancelEdit();
+            autoSave();
+            renderAdminTable();
+        }
+
+        function deleteActivity(idx) {
+            if (!confirm('Delete this activity?')) return;
+            dashboardData.records.splice(idx, 1);
+            autoSave();
+            renderAdminTable();
+            showToast('Activity deleted.');
+        }
+
+        // ── Admin: Slides ──
+
+        function renderSlideAdmin() {
+            const container = document.getElementById('slideAdminList');
+            const slides = dashboardData.slides;
+            container.innerHTML = slides.map((s, i) => {
+                const thumb = s.image && s.image.startsWith('data:image') ?
+                    `<img src="${s.image}" alt="slide" />` :
+                    `<div class="no-img"><i class="fas fa-image"></i></div>`;
+                return `<div class="slide-admin-item">
+                            <div class="thumb">${thumb}</div>
+                            <div class="file-input-wrapper">
+                                <input type="file" accept="image/*" onchange="uploadSlideImage(${i}, event)" />
+                                <span style="font-size:0.7rem;color:#5a7a5e;white-space:nowrap;">Upload</span>
+                            </div>
+                            <div class="slide-actions">
+                                <button class="btn-danger" onclick="removeSlide(${i})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>`;
+            }).join('') || '<p style="color:#8aa88e;padding:12px 0;">No slides. Add one below.</p>';
+            updateSlideCount();
+        }
+
+        function updateSlideCount() {
+            document.getElementById('slideCount').textContent = dashboardData.slides.length;
+        }
+
+        async function uploadSlideImage(idx, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const compressed = await compressImage(e.target.result, 600);
+                    dashboardData.slides[idx].image = compressed;
+                    autoSave();
+                    renderSlideAdmin();
+                    renderCarousel();
+                    showToast('Image uploaded for slide ' + (idx + 1));
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                showToast('Error uploading image. Try a smaller file.');
+                console.error(err);
+            }
+        }
+
+        function addSlide() {
+            if (dashboardData.slides.length >= MAX_SLIDES) {
+                showToast(`Maximum ${MAX_SLIDES} slides allowed.`);
+                return;
+            }
+            dashboardData.slides.push({ image: '' });
+            autoSave();
+            renderSlideAdmin();
+            renderCarousel();
+            showToast('New slide added.');
+        }
+
+        function removeSlide(idx) {
+            if (dashboardData.slides.length <= 1) {
+                showToast('At least 1 slide required.');
+                return;
+            }
+            if (!confirm('Remove this slide?')) return;
+            dashboardData.slides.splice(idx, 1);
+            if (slideIndex >= dashboardData.slides.length) slideIndex = 0;
+            autoSave();
+            renderSlideAdmin();
+            renderCarousel();
+            showToast('Slide removed.');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        //  INIT
+        // ════════════════════════════════════════════════════════════════
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            while (dashboardData.slides.length < 10) {
+                dashboardData.slides.push({ image: '' });
+            }
+            updateUpdateDate();
+            applyFilters();
+            renderCarousel();
+            startAutoSlide();
+
+            document.getElementById('periodView').addEventListener('change', applyFilters);
+            document.getElementById('periodSelect').addEventListener('change', applyFilters);
+            document.getElementById('quarterSelect').addEventListener('change', applyFilters);
+            document.getElementById('halfSelect').addEventListener('change', applyFilters);
+
+            document.getElementById('adminModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        });
+
+        // Expose globals
+        window.applyFilters = applyFilters;
+        window.nextSlide = nextSlide;
+        window.prevSlide = prevSlide;
+        window.goToSlide = goToSlide;
+        window.requestAdminAccess = requestAdminAccess;
+        window.verifyPassword = verifyPassword;
+        window.changePassword = changePassword;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.saveActivity = saveActivity;
+        window.editActivity = editActivity;
+        window.deleteActivity = deleteActivity;
+        window.cancelEdit = cancelEdit;
+        window.addSlide = addSlide;
+        window.removeSlide = removeSlide;
+        window.uploadSlideImage = uploadSlideImage;
+        window.exportCSV = exportCSV;
+        window.importCSV = importCSV;
+        window.exportJSON = exportJSON;
+        window.importJSON = importJSON;
+        window.resetToDefault = resetToDefault;
+        window.saveToBrowser = saveToBrowser;
+
+        console.log('🌳 Alkhidmat Plantation Dashboard v7 loaded.');
+        console.log(`📊 ${dashboardData.records.length} records, ${dashboardData.slides.length} slides.`);
+        console.log('🔒 Admin password-protected. Default: admin123');
+        console.log('📁 CSV Export/Import available in Manage Data → Save & Export.');
+    </script>
+
+</body>
+</html>
